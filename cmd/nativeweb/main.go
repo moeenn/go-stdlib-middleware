@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"log/slog"
-	"nativeweb/lib"
+	"nativeweb/lib/middleware"
+	"nativeweb/lib/responses"
 	"net/http"
 	"os"
 	"time"
@@ -17,10 +18,10 @@ const (
 func run() error {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	mux := http.NewServeMux()
-	loggingMiddleware := lib.NewLoggingMiddleware(logger)
-	authMiddleware := lib.NewAuthMiddleware(logger)
+	loggingMiddleware := middleware.LoggingMiddleware(logger)
+	authMiddleware := middleware.AuthMiddleware(logger)
 
-	mux.Handle("GET /hello", lib.Chain(helloHandler, loggingMiddleware, authMiddleware))
+	mux.HandleFunc("GET /hello", middleware.Chain(helloHandler, loggingMiddleware, authMiddleware))
 
 	server := &http.Server{
 		Addr:              ADDRESS,
@@ -40,10 +41,9 @@ type helloResponse struct {
 }
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
-	token := r.Context().Value(lib.AuthContextKey).(string)
-
+	token := r.Context().Value(middleware.AuthTokenContextKey).(string)
 	res := helloResponse{Message: "Welcome to our website: " + token}
-	lib.Respond(w, http.StatusOK, res)
+	responses.Send(w, http.StatusOK, res)
 }
 
 func main() {
