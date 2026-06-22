@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log/slog"
 	"nativeweb/lib/middleware"
-	"nativeweb/lib/responses"
 	"net/http"
 	"os"
 	"time"
@@ -17,6 +16,8 @@ const (
 
 func run() error {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	mux := http.NewServeMux()
 	loggingMiddleware := middleware.LoggingMiddleware(logger)
 	authMiddleware := middleware.AuthMiddleware(logger)
@@ -40,10 +41,10 @@ type helloResponse struct {
 	Message string `json:"message"`
 }
 
-func helloHandler(w http.ResponseWriter, r *http.Request) {
-	token := r.Context().Value(middleware.AuthTokenContextKey).(string)
+func helloHandler(c middleware.Context) error {
+	token := c.Context().Value(middleware.AuthTokenContextKey).(string)
 	res := helloResponse{Message: "Welcome to our website: " + token}
-	responses.Send(w, http.StatusOK, res)
+	return c.Json(http.StatusOK, res)
 }
 
 func main() {
