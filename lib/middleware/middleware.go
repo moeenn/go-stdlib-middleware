@@ -61,6 +61,8 @@ func LoggingMiddleware(logger *slog.Logger) Middleware {
 		handler := func(c Context) error {
 			start := time.Now()
 			_ = next(c)
+
+			// FIXME: this never gets called.
 			logger.Info("incoming request",
 				"method", c.Request.Method,
 				"uri", c.Request.RequestURI,

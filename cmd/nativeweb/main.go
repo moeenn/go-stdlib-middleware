@@ -24,6 +24,7 @@ func run() error {
 
 	mux.HandleFunc("GET /hello", middleware.Chain(helloHandler, loggingMiddleware, authMiddleware))
 
+	//nolint:exhaustruct
 	server := &http.Server{
 		Addr:              ADDRESS,
 		Handler:           mux,
