@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"strings"
 )
@@ -20,8 +21,16 @@ type RequestIdArgs struct {
 func RequestId(args RequestIdArgs) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			reqId, ok := readRequestIdFromHeader(r)
-			if !ok || !args.ReadFromHeader {
+			var reqId string
+			if args.ReadFromHeader {
+				headerValue, ok := readRequestIdFromHeader(r)
+				if !ok {
+					slog.Warn("missing request-id header in request", "header", requestIdHeader)
+					reqId = args.Factory()
+				} else {
+					reqId = headerValue
+				}
+			} else {
 				reqId = args.Factory()
 			}
 
