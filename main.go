@@ -41,7 +41,11 @@ func run() error {
 	mux.HandleFunc("GET /home", homeHandler)
 	mux.Handle("GET /protected", middleware.Chain(protectedHandler, middleware.BearerToken))
 
-	reqIdMiddleware := middleware.RequestId(func() string { return uuid.NewString() })
+	reqIdMiddleware := middleware.RequestId(middleware.RequestIdArgs{
+		Factory:        func() string { return uuid.NewString() },
+		ReadFromHeader: true,
+	})
+
 	s := server.New(server.Config{
 		Address: SERVER_ADDR,
 		Timeout: SERVER_TIMEOUT,
